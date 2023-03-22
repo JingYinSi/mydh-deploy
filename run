@@ -1,0 +1,443 @@
+#!/bin/bash
+# run: shell script library for mydh installation and management.
+run() {
+  #region
+  BOOL_TRUE=0
+  BOOL_FALSE=1
+
+  #endregion
+  #region registry
+  declare -A fns defs
+  declare -a names
+  registry() {
+    #echo "registry"
+    add() {
+      #echo "add start:"
+      local name=$1
+      local fn=$2
+      local desc=$3
+
+      names+=($name)
+      fns[$name]=$fn
+      defs[$name]=$desc
+    }
+    exec() {
+      isHelp() {
+        if [[ "$#" -gt 0 ]] && [[ "$*" == *-h* ]]; then
+          return $BOOL_TRUE
+        else
+          return $BOOL_FALSE
+        fi
+      }
+      support() {
+        if [ "$1" != "" ] && [ -n "${fns[$1]}" ]; then
+          #echo "support"
+          return $BOOL_TRUE
+        else
+          #echo "not support"
+          return $BOOL_FALSE
+        fi
+      }
+      doExec() {
+        local cmd=$1
+        ${fns[$cmd]} "${@:2}"
+      }
+      doHelp() {
+        echo "support commands:"
+        list
+        echo ""
+      }
+      unknown() {
+        if [ "$1" != "" ]; then
+          echo "unknown commands $*"
+        fi
+        doHelp "$@"
+      }
+
+      if support "$@"; then
+        doExec "$@"
+      elif isHelp "$@"; then
+        doHelp "$@"
+      else
+        unknown "$@"
+      fi
+    }
+    list() {
+      space() {
+        local count=$1
+        local result=""
+        for ((i = 0; i < "$count"; i++)); do
+          result+=" "
+        done
+        echo "$result"
+      }
+      local width=22
+      for name in ${names[*]}; do
+        local len=$((width - ${#name}))
+        echo "${name}$(space $len)${defs[$name]}"
+      done
+    }
+    main() {
+      declare -A fn
+      fn["add"]=add
+      fn["list"]=list
+      fn["exec"]=exec
+      #echo "registry main:"
+
+      if [ "$1" != "" ] && [ -n "${fn[$1]}" ]; then
+        ${fn[$1]} "${@:2}"
+      else
+        list
+      fi
+    }
+    main "$@"
+  }
+
+  exec() {
+    registry exec "$@"
+  }
+  #endregion
+
+  #region objects
+  objects() {
+    declare -A fns defs
+    declare -a names
+
+    #region objects or functions
+    version() {
+      echo "run version 0.1.3"
+    }
+
+    assert() {
+      val() {
+        local v=$1
+
+        shouldBeNotEmpty() {
+          if [ "$v" == "" ]; then
+            echo "$1"
+            exit 1
+          fi
+        }
+
+        main() {
+          #printArgs "$@"
+          declare -A fn
+          fn["shouldBeNotEmpty"]=shouldBeNotEmpty
+
+          if [ "$2" != "" ] && [ -n "${fn[$2]}" ]; then
+            ${fn[$2]} "${@:3}" || error runtime "$@"
+          else
+            error not_support "$@"
+          fi
+        }
+
+        main "$@"
+      }
+
+      main() {
+        declare -A fn
+        fn["val"]=val
+
+        if [ "$1" != "" ] && [ -n "${fn[$1]}" ]; then
+          ${fn[$1]} "${@:2}" || error runtime "$@"
+        else
+          error not_support "$@"
+        fi
+      }
+
+      main "$@"
+    }
+
+    mydh() {
+      declare -A fns defs
+      declare -a names
+      #region manage objects
+      web() {
+        declare -A fns defs
+        declare -a names
+        #region support commands
+        install() {
+          echo "mydh web is installing..."
+          mkdir -p web/src/mydh && mkdir -p web/conf
+          echo "mydh web install success."
+        }
+
+        start() {
+          echo "mydh web start"
+        }
+
+        stop() {
+          echo "mydh web stop"
+        }
+
+        restart() {
+          echo "mydh web restart"
+        }
+
+        update() {
+          echo "mydh web update"
+        }
+        #endregion
+
+        #region main
+        init() {
+          #region support commands
+          registry add "install" start "install mydh web server"
+          registry add "start" start "start mydh web server"
+          registry add "stop" stop "stop mydh web server"
+          registry add "restart" restart "restart mydh web server"
+          registry add "update" update "update mydh web source code"
+          #endregion
+        }
+        main() {
+          init "$@"
+          exec "$@"
+        }
+        main "$@"
+        #endregion
+      }
+      app() {
+        declare -A fns defs
+        declare -a names
+        #region support commands
+        install() {
+          echo "mydh app is installing..."
+          mkdir -p app/src/mydh && mkdir -p app/conf && cd app/src/mydh
+          git clone https://github.com/JingYinSi/buddhists.git && ./buddhists/git checkout dev-0415
+          echo "mydh app install success."
+        }
+
+        start() {
+          echo "mydh app start"
+        }
+
+        stop() {
+          echo "mydh app stop"
+        }
+
+        restart() {
+          echo "mydh app restart"
+        }
+
+        update() {
+          echo "mydh app update"
+        }
+        #endregion
+
+        #region main
+        init() {
+          #region support commands
+          registry add "start" start "start mydh app server"
+          registry add "stop" stop "stop mydh app server"
+          registry add "restart" restart "restart mydh app server"
+          registry add "update" update "update mydh app source code"
+          #endregion
+        }
+        main() {
+          init "$@"
+          exec "$@"
+        }
+        main "$@"
+        #endregion
+      }
+      db() {
+        declare -A fns defs
+        declare -a names
+        #region support commands
+        install() {
+          mkdir -p db/mongo/data/mydh && mkdir -p db/mongo/backup/mydh
+        }
+
+        start() {
+          echo "mydh db start"
+        }
+
+        stop() {
+          echo "mydh db stop"
+        }
+
+        restart() {
+          echo "mydh db restart"
+        }
+
+        backup() {
+          echo "mydh db backup"
+        }
+        #endregion
+
+        #region main
+        init() {
+          #region support commands
+          registry add "start" start "start mydh db server"
+          registry add "stop" stop "stop mydh db server"
+          registry add "restart" restart "restart mydh db server"
+          registry add "backup" backup "backup mydh database"
+          #endregion
+        }
+        main() {
+          init "$@"
+          exec "$@"
+        }
+        main "$@"
+        #endregion
+      }
+      mq() {
+        declare -A fns defs
+        declare -a names
+        #region support commands
+        install() {
+          mkdir -p mq/rabbitmq/conf && mkdir -p mq/rabbitmq/data
+        }
+
+        start() {
+          echo "mydh mq start"
+        }
+
+        stop() {
+          echo "mydh mq stop"
+        }
+
+        restart() {
+          echo "mydh mq restart"
+        }
+        #endregion
+
+        #region main
+        init() {
+          #region support commands
+          registry add "start" start "start mydh mq server"
+          registry add "stop" stop "stop mydh mq server"
+          registry add "restart" restart "restart mydh mq server"
+          #endregion
+        }
+        main() {
+          init "$@"
+          exec "$@"
+        }
+        main "$@"
+        #endregion
+      }
+      cert() {
+        declare -A fns defs
+        declare -a names
+        #region support commands
+        install() {
+          mkdir -p cert/mygdh.top
+        }
+
+        update() {
+          echo "mydh cert update"
+        }
+        #endregion
+
+        #region main
+        init() {
+          #region support commands
+          registry add "update" update "update mydh cert"
+          #endregion
+        }
+        main() {
+          init "$@"
+          exec "$@"
+        }
+        main "$@"
+        #endregion
+      }
+      #endregion
+
+      #region support commands
+      install() {
+        local installPath=$1
+        assert val "$installPath" shouldBeNotEmpty "install path required."
+        echo "mydh install..."
+
+        mkdir -p "$installPath" && cd "$installPath"
+        {
+          echo "export MYDH_ROOT_PATH=$installPath"
+        } >>~/.bash_profile
+        source ~/.bash_profile
+
+        web install
+        app install
+        db install
+        mq install
+        cert install
+
+        echo "mydh install successful."
+      }
+
+      start() {
+        echo "mydh start..."
+      }
+
+      stop() {
+        echo "mydh stop..."
+      }
+
+      restart() {
+        echo "mydh restart..."
+      }
+
+      uninstall() {
+        echo "mydh uninstall..."
+      }
+
+      #endregion
+
+      #region main
+      init() {
+        #region support commands
+        registry add "install" install "install mydh software"
+        registry add "start" start "start mydh web,app,db,mq servers"
+        registry add "stop" stop "stop mydh web,app,db,mq servers"
+        registry add "restart" restart "restart mydh web,app,db,mq servers"
+        registry add "uninstall" uninstall "uninstall mydh software"
+        #endregion
+
+        #region manage objects
+        registry add "web" web "mydh web server management"
+        registry add "app" app "mydh app server management"
+        registry add "db" db "mydh db server management"
+        registry add "mq" mq "mydh mq server management"
+        registry add "cert" cert "mydh cert update"
+        #endregion
+      }
+
+      main() {
+        init "$@"
+        exec "$@"
+      }
+      main "$@"
+      #endregion
+    }
+
+    #endregion
+
+    #region main
+    init() {
+      #echo "1.1 init"
+      registry add "version" version "display run version"
+      registry add "assert" version "assert utilities"
+      registry add "mydh" mydh "mydh management"
+    }
+
+    main() {
+      #echo "objects main........"
+      #echo "${@:2}"
+      init "${@:2}"
+      exec "${@:2}"
+    }
+    #endregion
+
+    main "$@"
+  }
+
+  #endregion
+
+  main() {
+    objects exec "$@"
+  }
+  main "$@"
+}
+
+run "$@"

@@ -1,0 +1,12 @@
+HTTP/1.1 200 OK
+Server: nginx/1.20.0
+Date: Thu, 16 Mar 2023 06:18:40 GMT
+Content-Type: application/pem-certificate-chain
+Transfer-Encoding: chunked
+Connection: keep-alive
+Cache-Control: no-store
+Link: <https://acme.freessl.cn/v2/DV90/directory/kmsr1ialxqypjtr53ir6>;rel="index"
+Link: </v2/DV90/cert/kmsr1ialxqypjtr53ir6/57>;rel="alternate"
+Replay-Nonce: tgSmEliAZzIIDTZEMg4HZz2tbFWi-C1xbnlODv-ZHxQ
+X-Trace-Id: aa29404ce378d5189955b2fe918eda09
+

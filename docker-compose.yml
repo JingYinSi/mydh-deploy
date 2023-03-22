@@ -1,0 +1,60 @@
+version: "3"
+services:
+  web_server:
+    container_name: web_server
+    image: "nginx:alpine"
+    ports:
+      - "8080:80"
+    volumes:
+      - "${INSTALL_PATH}/web/src/mydh/html:/usr/share/nginx/html:ro"
+      - "${INSTALL_PATH}/web/conf/nginx.conf:/etc/nginx/nginx.conf:ro"
+    depends_on:
+      - app_server
+  app_server:
+    container_name: app_server
+    image: "node:16-alpine"
+    environment:
+      - RUNNING_MODE=rest
+      - HTTPS=true
+      - PORT=9550
+      - MONGODB=mongodb://mydhdb:27017/mydh
+      - MQ=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mydhmq
+      - AppId=${WECHAT_APP_ID}
+      - AppSecret=${WECHAT_APP_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - SessionExpiresIn=${SESSION_EXPIRES_IN}
+    entrypoint:
+      - "sh"
+      - "-c"
+      - "npm install && node server.js"
+    working_dir: "${INSTALL_PATH}/app/src/mydh/buddhists"
+    ports:
+      - "443:9550"
+      - "80:9550"
+    volumes:
+      - ".:${INSTALL_PATH}/app/src/mydh/buddhists"
+      # Don't sync the node_modules directory back to the client.
+      - "${INSTALL_PATH}/app/src/mydh/buddhists/node_modules"
+    depends_on:
+      - rabbitmq
+      - mongodb
+    links:
+      - mongodb:mydhdb
+      - rabbitmq:mydhmq
+  rabbitmq:
+    container_name: "rabbitmq:3-management-alpine"
+    image: "rabbitmq:management"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "5672"
+      - "15672"
+  mongodb:
+    container_name: mongodb
+    image: mongo
+    volumes:
+      - ${INSTALL_PATH}/db/mongo/data/mydh:/data/db
+      - ${INSTALL_PATH}/db/mongo/backup/mydh:/backups
+    ports:
+      - "28517:27017"
