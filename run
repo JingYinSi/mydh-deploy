@@ -202,8 +202,7 @@ run() {
         #region support commands
         install() {
           echo "mydh app is installing..."
-          mkdir -p app/src/mydh && mkdir -p app/conf && cd app/src/mydh
-          git clone https://github.com/JingYinSi/buddhists.git && ./buddhists/git checkout dev-0415
+          git clone https://github.com/JingYinSi/buddhists.git && cd buddhists  && git checkout dev-0415
           echo "mydh app install success."
         }
 

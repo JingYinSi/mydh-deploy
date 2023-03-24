@@ -2,22 +2,43 @@ version: "3"
 services:
   web_server:
     container_name: web_server
-    image: "nginx:alpine"
-    ports:
-      - "8080:80"
-    volumes:
-      - "${INSTALL_PATH}/web/src/mydh/html:/usr/share/nginx/html:ro"
-      - "${INSTALL_PATH}/web/conf/nginx.conf:/etc/nginx/nginx.conf:ro"
-    depends_on:
-      - app_server
-  app_server:
-    container_name: app_server
-    image: "node:16-alpine"
+    image: "nginx:1.23.3-alpine"
+    restart: always
+    labels:
+      tier: frontend
+      app: web_server
     environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "${INSTALL_PATH}/web/conf/nginx.conf:/etc/nginx/nginx.conf:rw"
+      - "${INSTALL_PATH}/web/src/mydh/web:/usr/share/nginx/html/mydh/web:ro"
+      - "${INSTALL_PATH}/web/logs:/etc/nginx/logs/:rw"
+      - "${INSTALL_PATH}/cert/.acme.sh/mygdh.top_ecc/mygdh.top.key:/etc/nginx/cert.key:ro"
+      - "${INSTALL_PATH}/cert/.acme.sh/mygdh.top_ecc/fullchain.cer:/etc/nginx/cert.crt:ro"
+    depends_on:
+      - wx_server
+      - admin_server
+    links:
+      - wx_server:wx_server
+      - admin_server:admin_server
+      - mongodb:mydhdb
+      - rabbitmq:mydhmq
+  wx_server:
+    container_name: wx_server
+    image: "node:16-alpine"
+    restart: always
+    labels:
+      tier: backend
+      app: wx_server
+    environment:
+      - TZ=Asia/Shanghai
       - RUNNING_MODE=rest
       - HTTPS=true
-      - PORT=9550
-      - MONGODB=mongodb://mydhdb:27017/mydh
+      - PORT=8000
+      - MONGODB=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mydhdb:27017/mydh
       - MQ=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mydhmq
       - AppId=${WECHAT_APP_ID}
       - AppSecret=${WECHAT_APP_SECRET}
@@ -27,14 +48,43 @@ services:
       - "sh"
       - "-c"
       - "npm install && node server.js"
-    working_dir: "${INSTALL_PATH}/app/src/mydh/buddhists"
     ports:
-      - "443:9550"
-      - "80:9550"
+      - "8443:8000"
+      - "8080:8000"
+    working_dir: "/app"
     volumes:
-      - ".:${INSTALL_PATH}/app/src/mydh/buddhists"
-      # Don't sync the node_modules directory back to the client.
-      - "${INSTALL_PATH}/app/src/mydh/buddhists/node_modules"
+      - "${INSTALL_PATH}/app/src/mydh/buddhists:/app"
+    depends_on:
+      - rabbitmq
+      - mongodb
+    links:
+      - mongodb:mydhdb
+      - rabbitmq:mydhmq
+  admin_server:
+    container_name: admin_server
+    image: "node:16-alpine"
+    labels:
+      tier: backend
+      app: admin_server
+    environment:
+      - TZ=Asia/Shanghai
+      - RUNNING_MODE=rest
+      - HTTPS=true
+      - PORT=9000
+      - MONGODB=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mydhdb:27017/mydh
+      - MQ=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mydhmq
+      - JWT_SECRET=${JWT_SECRET}
+      - SessionExpiresIn=${SESSION_EXPIRES_IN}
+    entrypoint:
+      - "sh"
+      - "-c"
+      - "npm install && node server.js"
+    ports:
+      - "9443:9000"
+      - "9090:9000"
+    working_dir: "/app"
+    volumes:
+      - "${INSTALL_PATH}/app/src/mydh/buddhists:/app"
     depends_on:
       - rabbitmq
       - mongodb
@@ -42,9 +92,13 @@ services:
       - mongodb:mydhdb
       - rabbitmq:mydhmq
   rabbitmq:
-    container_name: "rabbitmq:3-management-alpine"
-    image: "rabbitmq:management"
+    container_name: "rabbitmq"
+    image: "rabbitmq:3-management-alpine"
+    labels:
+      tier: data
+      app: rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     ports:
@@ -52,9 +106,33 @@ services:
       - "15672"
   mongodb:
     container_name: mongodb
-    image: mongo
+    image: "mongo"
+    labels:
+      tier: data
+      app: mongodb
+    environment:
+      - TZ=Asia/Shanghai
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - ${INSTALL_PATH}/db/mongo/data/mydh:/data/db
       - ${INSTALL_PATH}/db/mongo/backup/mydh:/backups
     ports:
       - "28517:27017"
+  mongo-express:
+    container_name: "mongo-express"
+    image: "mongo-express"
+    labels:
+      tier: data
+      app: mongo-express
+    restart: always
+    ports:
+      - "28081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_EXPRESS_ADMINUSERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_EXPRESS_ADMINPASSWORD}
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mydhdb:27017/
+    depends_on:
+      - mongodb
+    links:
+      - mongodb:mydhdb
