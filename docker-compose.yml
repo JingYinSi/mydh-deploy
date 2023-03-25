@@ -14,7 +14,7 @@ services:
       - "443:443"
     volumes:
       - "${INSTALL_PATH}/web/conf/nginx.conf:/etc/nginx/nginx.conf:rw"
-      - "${INSTALL_PATH}/web/src/mydh/web:/usr/share/nginx/html/mydh/web:ro"
+      - "${INSTALL_PATH}/web/src/mygdh/web:/usr/share/nginx/html/mygdh/web:ro"
       - "${INSTALL_PATH}/web/logs:/etc/nginx/logs/:rw"
       - "${INSTALL_PATH}/cert/.acme.sh/mygdh.top_ecc/mygdh.top.key:/etc/nginx/cert.key:ro"
       - "${INSTALL_PATH}/cert/.acme.sh/mygdh.top_ecc/fullchain.cer:/etc/nginx/cert.crt:ro"
@@ -24,8 +24,8 @@ services:
     links:
       - wx_server:wx_server
       - admin_server:admin_server
-      - mongodb:mydhdb
-      - rabbitmq:mydhmq
+      - mongodb:mygdhdb
+      - rabbitmq:mygdhmq
   wx_server:
     container_name: wx_server
     image: "node:16-alpine"
@@ -38,8 +38,8 @@ services:
       - RUNNING_MODE=rest
       - HTTPS=true
       - PORT=8000
-      - MONGODB=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mydhdb:27017/mydh
-      - MQ=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mydhmq
+      - MONGODB=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mygdhdb:27017/mygdh
+      - MQ=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mygdhmq
       - AppId=${WECHAT_APP_ID}
       - AppSecret=${WECHAT_APP_SECRET}
       - JWT_SECRET=${JWT_SECRET}
@@ -53,13 +53,13 @@ services:
       - "8080:8000"
     working_dir: "/app"
     volumes:
-      - "${INSTALL_PATH}/app/src/mydh/buddhists:/app"
+      - "${INSTALL_PATH}/app/src/mygdh/mygdh-wx:/app"
     depends_on:
       - rabbitmq
       - mongodb
     links:
-      - mongodb:mydhdb
-      - rabbitmq:mydhmq
+      - mongodb:mygdhdb
+      - rabbitmq:mygdhmq
   admin_server:
     container_name: admin_server
     image: "node:16-alpine"
@@ -71,8 +71,8 @@ services:
       - RUNNING_MODE=rest
       - HTTPS=true
       - PORT=9000
-      - MONGODB=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mydhdb:27017/mydh
-      - MQ=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mydhmq
+      - MONGODB=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mygdhdb:27017/mygdh
+      - MQ=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mygdhmq
       - JWT_SECRET=${JWT_SECRET}
       - SessionExpiresIn=${SESSION_EXPIRES_IN}
     entrypoint:
@@ -84,13 +84,13 @@ services:
       - "9090:9000"
     working_dir: "/app"
     volumes:
-      - "${INSTALL_PATH}/app/src/mydh/buddhists:/app"
+      - "${INSTALL_PATH}/app/src/mygdh/mygdh-admin:/app"
     depends_on:
       - rabbitmq
       - mongodb
     links:
-      - mongodb:mydhdb
-      - rabbitmq:mydhmq
+      - mongodb:mygdhdb
+      - rabbitmq:mygdhmq
   rabbitmq:
     container_name: "rabbitmq"
     image: "rabbitmq:3-management-alpine"
@@ -115,8 +115,8 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
-      - ${INSTALL_PATH}/db/mongo/data/mydh:/data/db
-      - ${INSTALL_PATH}/db/mongo/backup/mydh:/backups
+      - ${INSTALL_PATH}/db/mongo/data/mygdh:/data/db
+      - ${INSTALL_PATH}/db/mongo/backup/mygdh:/backups
     ports:
       - "28517:27017"
   mongo-express:
@@ -131,8 +131,8 @@ services:
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_EXPRESS_ADMINUSERNAME}
       - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_EXPRESS_ADMINPASSWORD}
-      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mydhdb:27017/
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mygdhdb:27017/
     depends_on:
       - mongodb
     links:
-      - mongodb:mydhdb
+      - mongodb:mygdhdb
