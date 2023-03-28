@@ -20,10 +20,6 @@ services:
       - "${INSTALL_PATH}/web/src/mygdh/html:/usr/share/nginx/html/mygdh/html:ro"
       - "${INSTALL_PATH}/cert/.acme.sh/mygdh.top_ecc/mygdh.top.key:/etc/nginx/cert.key:ro"
       - "${INSTALL_PATH}/cert/.acme.sh/mygdh.top_ecc/fullchain.cer:/etc/nginx/cert.crt:ro"
-    logging:
-      options:
-        max-file: "3"
-        max-size: 200m
     depends_on:
       - wx_server
       - admin_server
@@ -60,10 +56,6 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - "${INSTALL_PATH}/app/src/mygdh/mygdh-wx:/app"
-    logging:
-      options:
-        max-file: "3"
-        max-size: 200m
     depends_on:
       - mongodb
       - rabbitmq
@@ -95,10 +87,6 @@ services:
     working_dir: "/app"
     volumes:
       - "${INSTALL_PATH}/app/src/mygdh/mygdh-admin:/app"
-    logging:
-      options:
-        max-file: "3"
-        max-size: 200m
     depends_on:
       - mongodb
       - rabbitmq
@@ -107,7 +95,7 @@ services:
       - rabbitmq:mygdhmq
   mongodb:
     container_name: mongodb
-    image: "mongo:4.0.0-xenial"
+    image: "mongo"
     restart: always
     labels:
       tier: backend
@@ -119,10 +107,6 @@ services:
     volumes:
       - ${INSTALL_PATH}/db/mongo/data/mygdh:/data/db
       - ${INSTALL_PATH}/db/mongo/backup/mygdh:/backups
-    logging:
-      options:
-        max-file: "3"
-        max-size: 200m
     ports:
       - "28517:27017"
   mongo-express:
@@ -138,10 +122,6 @@ services:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
       - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mygdhdb:27017/
-    logging:
-      options:
-        max-file: "3"
-        max-size: 200m
     depends_on:
       - mongodb
     links:
@@ -159,10 +139,6 @@ services:
     ports:
       - "5672"
       - "15672"
-    logging:
-      options:
-        max-file: "3"
-        max-size: 200m
   portainer:
     container_name: portainer
     image: "portainer/portainer:alpine"
@@ -172,7 +148,3 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${INSTALL_PATH}/portainer:/data:rw
-    logging:
-      options:
-        max-file: "3"
-        max-size: 100m
