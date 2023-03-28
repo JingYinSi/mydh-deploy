@@ -13,20 +13,23 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - "${INSTALL_PATH}/web/conf/nginx.conf:/etc/nginx/nginx.conf:rw"
+      - "${INSTALL_PATH}/web/conf/nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "${INSTALL_PATH}/web/temp:/temp/nginx/temp/:rw"
+      - "${INSTALL_PATH}/web/logs:/etc/nginx/logs/:rw"
       - "${INSTALL_PATH}/web/src/mygdh/web:/usr/share/nginx/html/mygdh/web:ro"
       - "${INSTALL_PATH}/web/src/mygdh/html:/usr/share/nginx/html/mygdh/html:ro"
-      - "${INSTALL_PATH}/web/logs:/etc/nginx/logs/:rw"
       - "${INSTALL_PATH}/cert/.acme.sh/mygdh.top_ecc/mygdh.top.key:/etc/nginx/cert.key:ro"
       - "${INSTALL_PATH}/cert/.acme.sh/mygdh.top_ecc/fullchain.cer:/etc/nginx/cert.crt:ro"
+    logging:
+      options:
+        max-file: "3"
+        max-size: 200m
     depends_on:
       - wx_server
       - admin_server
     links:
       - wx_server:wx_server
       - admin_server:admin_server
-      - mongodb:mygdhdb
-      - rabbitmq:mygdhmq
   wx_server:
     container_name: wx_server
     image: "node:16-alpine"
@@ -39,7 +42,7 @@ services:
       - RUNNING_MODE=rest
       - HTTPS=true
       - PORT=8000
-      - MONGODB=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mygdhdb:27017/mygdh
+      - MONGODB=mongodb://${MONG0_MYGDH_USERNAME}:${MONG0_MYGDH_PASSWORD}@mygdhdb:27017/mygdh
       - MQ=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mygdhmq
       - AppId=${WECHAT_APP_ID}
       - AppSecret=${WECHAT_APP_SECRET}
@@ -54,10 +57,16 @@ services:
       - "8080:8000"
     working_dir: "/app"
     volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
       - "${INSTALL_PATH}/app/src/mygdh/mygdh-wx:/app"
+    logging:
+      options:
+        max-file: "3"
+        max-size: 200m
     depends_on:
-      - rabbitmq
       - mongodb
+      - rabbitmq
     links:
       - mongodb:mygdhdb
       - rabbitmq:mygdhmq
@@ -72,7 +81,7 @@ services:
       - RUNNING_MODE=rest
       - HTTPS=true
       - PORT=9000
-      - MONGODB=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mygdhdb:27017/mygdh
+      - MONGODB=mongodb://${MONG0_MYGDH_USERNAME}:${MONG0_MYGDH_PASSWORD}@mygdhdb:27017/mygdh
       - MQ=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mygdhmq
       - JWT_SECRET=${JWT_SECRET}
       - SessionExpiresIn=${SESSION_EXPIRES_IN}
@@ -86,17 +95,22 @@ services:
     working_dir: "/app"
     volumes:
       - "${INSTALL_PATH}/app/src/mygdh/mygdh-admin:/app"
+    logging:
+      options:
+        max-file: "3"
+        max-size: 200m
     depends_on:
-      - rabbitmq
       - mongodb
+      - rabbitmq
     links:
-      - rabbitmq:mygdhmq
       - mongodb:mygdhdb
+      - rabbitmq:mygdhmq
   mongodb:
     container_name: mongodb
-    image: "mongo"
+    image: "mongo:4.0.0-xenial"
+    restart: always
     labels:
-      tier: data
+      tier: backend
       app: mongodb
     environment:
       - TZ=Asia/Shanghai
@@ -105,6 +119,10 @@ services:
     volumes:
       - ${INSTALL_PATH}/db/mongo/data/mygdh:/data/db
       - ${INSTALL_PATH}/db/mongo/backup/mygdh:/backups
+    logging:
+      options:
+        max-file: "3"
+        max-size: 200m
     ports:
       - "28517:27017"
   mongo-express:
@@ -120,6 +138,10 @@ services:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
       - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mygdhdb:27017/
+    logging:
+      options:
+        max-file: "3"
+        max-size: 200m
     depends_on:
       - mongodb
     links:
@@ -137,3 +159,20 @@ services:
     ports:
       - "5672"
       - "15672"
+    logging:
+      options:
+        max-file: "3"
+        max-size: 200m
+  portainer:
+    container_name: portainer
+    image: "portainer/portainer:alpine"
+    restart: always
+    ports:
+      - 9888:9000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${INSTALL_PATH}/portainer:/data:rw
+    logging:
+      options:
+        max-file: "3"
+        max-size: 100m
