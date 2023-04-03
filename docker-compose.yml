@@ -41,7 +41,7 @@ services:
       - TZ=Asia/Shanghai
       - RUNNING_MODE=rest
       - HTTPS=true
-      - PORT=8000
+      - PORT=443
       - MONGODB=mongodb://${MONG0_MYGDH_USERNAME}:${MONG0_MYGDH_PASSWORD}@mygdhdb:27017/mygdh
       - MQ=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mygdhmq
       - AppId=${WECHAT_APP_ID}
@@ -53,13 +53,14 @@ services:
       - "-c"
       - "npm install && node server.js"
     ports:
-      - "8443:8000"
-      - "8080:8000"
+      - "8443:443"
     working_dir: "/app"
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - "${INSTALL_PATH}/app/src/mygdh/mygdh-wx:/app"
+      - "${INSTALL_PATH}/cert/.acme.sh/wx.mygdh.top_ecc/wx.mygdh.top.key:/app/.cert/privkey.pem:ro"
+      - "${INSTALL_PATH}/cert/.acme.sh/wx.mygdh.top_ecc/fullchain.cer:/app/.cert/fullchain.pem:ro"
     depends_on:
       - mongodb
       - rabbitmq
@@ -86,11 +87,12 @@ services:
       - "-c"
       - "npm install && node server.js"
     ports:
-      - "9443:9000"
-      - "9090:9000"
+      - "9443:443"
     working_dir: "/app"
     volumes:
       - "${INSTALL_PATH}/app/src/mygdh/mygdh-admin:/app"
+      - "${INSTALL_PATH}/cert/.acme.sh/admin.mygdh.top_ecc/admin.mygdh.top.key:/app/.cert/privkey.pem:ro"
+      - "${INSTALL_PATH}/cert/.acme.sh/admin.mygdh.top_ecc/fullchain.cer:/app/.cert/fullchain.pem:ro"
     depends_on:
       - mongodb
       - rabbitmq
