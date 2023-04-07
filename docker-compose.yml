@@ -59,6 +59,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - "${INSTALL_PATH}/app/src/mygdh/mygdh-wx:/app"
+      - "${INSTALL_PATH}/app/src/mygdh/hyper-rest:/hyper-rest"
       - "${INSTALL_PATH}/cert/.acme.sh/wx.mygdh.top_ecc/wx.mygdh.top.key:/app/.cert/privkey.pem:ro"
       - "${INSTALL_PATH}/cert/.acme.sh/wx.mygdh.top_ecc/fullchain.cer:/app/.cert/fullchain.pem:ro"
     depends_on:
@@ -90,7 +91,10 @@ services:
       - "9443:443"
     working_dir: "/app"
     volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
       - "${INSTALL_PATH}/app/src/mygdh/mygdh-admin:/app"
+      - "${INSTALL_PATH}/app/src/mygdh/hyper-rest:/hyper-rest"
       - "${INSTALL_PATH}/cert/.acme.sh/admin.mygdh.top_ecc/admin.mygdh.top.key:/app/.cert/privkey.pem:ro"
       - "${INSTALL_PATH}/cert/.acme.sh/admin.mygdh.top_ecc/fullchain.cer:/app/.cert/fullchain.pem:ro"
     depends_on:
