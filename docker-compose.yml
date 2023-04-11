@@ -39,7 +39,7 @@ services:
       app: wx_server
     environment:
       - TZ=Asia/Shanghai
-      - RUNNING_MODE=rest
+      - RUNNING_MODE=dev
       - HTTPS=true
       - PORT=443
       - MONGODB=mongodb://${MONG0_MYGDH_USERNAME}:${MONG0_MYGDH_PASSWORD}@mygdhdb:27017/mygdh
@@ -78,9 +78,11 @@ services:
       - TZ=Asia/Shanghai
       - RUNNING_MODE=rest
       - HTTPS=true
-      - PORT=9000
+      - PORT=443
       - MONGODB=mongodb://${MONG0_MYGDH_USERNAME}:${MONG0_MYGDH_PASSWORD}@mygdhdb:27017/mygdh
       - MQ=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mygdhmq
+      - AppId=${WECHAT_APP_ID}
+      - AppSecret=${WECHAT_APP_SECRET}
       - JWT_SECRET=${JWT_SECRET}
       - SessionExpiresIn=${SESSION_EXPIRES_IN}
     entrypoint:
@@ -129,6 +131,9 @@ services:
     ports:
       - "28081:8081"
     environment:
+      - ME_CONFIG_OPTIONS_EDITORTHEME=${ME_CONFIG_OPTIONS_EDITORTHEME}
+      - ME_CONFIG_BASICAUTH_USERNAME=${ME_CONFIG_BASICAUTH_USERNAME}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${ME_CONFIG_BASICAUTH_PASSWORD}
       - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
       - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mygdhdb:27017/
