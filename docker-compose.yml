@@ -48,6 +48,7 @@ services:
       - AppSecret=${WECHAT_APP_SECRET}
       - JWT_SECRET=${JWT_SECRET}
       - SessionExpiresIn=${SESSION_EXPIRES_IN}
+      - USER_DEFAULT_AVATAR=${USER_DEFAULT_AVATAR}
     entrypoint:
       - "sh"
       - "-c"
@@ -85,6 +86,7 @@ services:
       - AppSecret=${WECHAT_APP_SECRET}
       - JWT_SECRET=${JWT_SECRET}
       - SessionExpiresIn=${SESSION_EXPIRES_IN}
+      - USER_DEFAULT_AVATAR=${USER_DEFAULT_AVATAR}
     entrypoint:
       - "sh"
       - "-c"
