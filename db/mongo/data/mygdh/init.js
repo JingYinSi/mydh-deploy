@@ -2,18 +2,15 @@
 db.reports.deleteMany({})
 //init lesson instances state data
 db.wxusers.find().forEach(function(user){
-    user.lessonIns.forEach(function(lessonIns){
-        lessonIns.days=0
-        lessonIns.dayTimes=0
-        lessonIns.weekTimes=0
-        lessonIns.monthTimes=0
-        lessonIns.totalTimes=0
-    })
+    user.lessonIns=[]
+    user.dayLessonInsNumber=0
+    user.lessonDays=0
     db.wxusers.updateOne({_id:user._id},{$set:user})
 })
 
 //init lesson instance state data
 db.lessons.find().forEach(function(lesson){
+    lesson.dayLessonInsNumber=0
     lesson.instances.forEach(function(instance){
         instance.populations=0
         instance.todayPopulations=0
