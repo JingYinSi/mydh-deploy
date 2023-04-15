@@ -18,6 +18,7 @@ services:
       - "${INSTALL_PATH}/web/logs:/etc/nginx/logs/:rw"
       - "${INSTALL_PATH}/web/src/mygdh/web:/usr/share/nginx/html/mygdh/web:ro"
       - "${INSTALL_PATH}/web/src/mygdh/html:/usr/share/nginx/html/mygdh/html:ro"
+      - "${INSTALL_PATH}/web/src/mygdh/wx:/usr/share/nginx/html/mygdh/wx:ro"
       - "${INSTALL_PATH}/cert/.acme.sh/mygdh.top_ecc/fullchain.cer:/etc/nginx/mygdh.top/cert.crt:ro"
       - "${INSTALL_PATH}/cert/.acme.sh/mygdh.top_ecc/mygdh.top.key:/etc/nginx/mygdh.top/cert.key:ro"
       - "${INSTALL_PATH}/cert/.acme.sh/wx.mygdh.top_ecc/fullchain.cer:/etc/nginx/wx.mygdh.top/cert.crt:ro"
