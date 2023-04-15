@@ -14,7 +14,7 @@ services:
       - "443:443"
     volumes:
       - "${INSTALL_PATH}/web/conf/nginx.conf:/etc/nginx/nginx.conf:ro"
-      - "${INSTALL_PATH}/web/temp:/temp/nginx/temp/:rw"
+      - "${INSTALL_PATH}/web/temp:/var/nginx/temp/:rw"
       - "${INSTALL_PATH}/web/logs:/etc/nginx/logs/:rw"
       - "${INSTALL_PATH}/web/src/mygdh/web:/usr/share/nginx/html/mygdh/web:ro"
       - "${INSTALL_PATH}/web/src/mygdh/html:/usr/share/nginx/html/mygdh/html:ro"
@@ -118,9 +118,12 @@ services:
       - TZ=Asia/Shanghai
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONG0_MYGDH_USERNAME=${MONG0_MYGDH_USERNAME}
+      - MONG0_MYGDH_PASSWORD=${mygdh_top666}
     volumes:
       - ${INSTALL_PATH}/db/mongo/data/mygdh:/data/db
-      - ${INSTALL_PATH}/db/mongo/backup/mygdh:/backups
+      - ${INSTALL_PATH}/db/mongo/backup/mygdh:/backup
+      - ${INSTALL_PATH}/db/mongo/job/mygdh:/job
     ports:
       - "28517:27017"
   mongo-express:
