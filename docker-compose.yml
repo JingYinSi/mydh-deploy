@@ -119,7 +119,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
       - MONG0_MYGDH_USERNAME=${MONG0_MYGDH_USERNAME}
-      - MONG0_MYGDH_PASSWORD=${mygdh_top666}
+      - MONG0_MYGDH_PASSWORD=${MONG0_MYGDH_PASSWORD}
     volumes:
       - ${INSTALL_PATH}/db/mongo/data/mygdh:/data/db
       - ${INSTALL_PATH}/db/mongo/backup/mygdh:/backup
