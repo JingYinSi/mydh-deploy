@@ -123,7 +123,7 @@ services:
       - MONG0_MYGDH_PASSWORD=${MONG0_MYGDH_PASSWORD}
     volumes:
       - ${INSTALL_PATH}/db/mongo/data/mygdh:/data/db
-      - ${INSTALL_PATH}/db/mongo/backup/mygdh:/backup
+      - ${INSTALL_PATH}/db/mongo/backup/mygdh:/data/db/backup
       - ${INSTALL_PATH}/db/mongo/job/mygdh:/job
     ports:
       - "28517:27017"
