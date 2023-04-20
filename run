@@ -17,7 +17,7 @@ run() {
       local fn=$2
       local desc=$3
 
-      names+=($name)
+      names+=("$name")
       fns[$name]=$fn
       defs[$name]=$desc
     }
@@ -350,11 +350,11 @@ run() {
         assert val "$installPath" shouldBeNotEmpty "install path required."
         echo "mydh install..."
 
-        mkdir -p "$installPath" && cd "$installPath"
+        mkdir -p "$installPath" && cd "$installPath" || exit
         {
           echo "export MYDH_ROOT_PATH=$installPath"
-        } >>~/.bash_profile
-        source ~/.bash_profile
+        } >> "$HOME/.bash_profile"
+        source "$HOME/.bash_profile"
 
         web install
         app install
