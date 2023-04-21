@@ -17,7 +17,7 @@ run() {
       local fn=$2
       local desc=$3
 
-      names+=("$name")
+      names+=($name)
       fns[$name]=$fn
       defs[$name]=$desc
     }
@@ -109,7 +109,12 @@ run() {
     }
 
     assert() {
+      declare -A fns defs
+      declare -a names
+
       val() {
+        declare -A fns defs
+        declare -a names
         local v=$1
 
         shouldBeNotEmpty() {
@@ -119,30 +124,28 @@ run() {
           fi
         }
 
-        main() {
-          #printArgs "$@"
-          declare -A fn
-          fn["shouldBeNotEmpty"]=shouldBeNotEmpty
-
-          if [ "$2" != "" ] && [ -n "${fn[$2]}" ]; then
-            ${fn[$2]} "${@:3}" || error runtime "$@"
-          else
-            error not_support "$@"
-          fi
+        init() {
+          #region support commands
+          registry add "shouldBeNotEmpty" shouldBeNotEmpty "assert value shouldBeNotEmpty"
+          #endregion
         }
 
+        main() {
+          init "${@:2}"
+          exec "${@:2}"
+        }
         main "$@"
       }
 
-      main() {
-        declare -A fn
-        fn["val"]=val
+      init() {
+        #region support commands
+        registry add "val" val "assert val"
+        #endregion
+      }
 
-        if [ "$1" != "" ] && [ -n "${fn[$1]}" ]; then
-          ${fn[$1]} "${@:2}" || error runtime "$@"
-        else
-          error not_support "$@"
-        fi
+      main() {
+        init "$@"
+        exec "$@"
       }
 
       main "$@"
@@ -202,7 +205,7 @@ run() {
         #region support commands
         install() {
           echo "mydh app is installing..."
-          git clone https://github.com/JingYinSi/buddhists.git && cd buddhists  && git checkout dev-0415
+          git clone https://github.com/JingYinSi/buddhists.git && cd buddhists && git checkout dev-0415
           echo "mydh app install success."
         }
 
@@ -353,7 +356,7 @@ run() {
         mkdir -p "$installPath" && cd "$installPath" || exit
         {
           echo "export MYDH_ROOT_PATH=$installPath"
-        } >> "$HOME/.bash_profile"
+        } >>"$HOME/.bash_profile"
         source "$HOME/.bash_profile"
 
         web install
@@ -416,7 +419,7 @@ run() {
     init() {
       #echo "1.1 init"
       registry add "version" version "display run version"
-      registry add "assert" version "assert utilities"
+      registry add "assert" assert "assert utilities"
       registry add "mydh" mydh "mydh management"
     }
 
